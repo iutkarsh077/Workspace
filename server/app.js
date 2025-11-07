@@ -4,8 +4,11 @@ import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import router from "./Router/index.js";
+import dbConnect from "./utils/dbConnect.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
+app.use(cookieParser());
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
@@ -25,6 +28,12 @@ const io = new Server(server, {
 
 app.use("/api/v1", router);
 
-server.listen(port, () => {
-  console.log(`Server is listening to port ${port}`);
-});
+dbConnect()
+  .then(() => {
+    server.listen(port, () => {
+      console.log(`Server is listening to port ${port}`);
+    });
+  })
+  .catch((error) => {
+    console.log(error);
+  });
