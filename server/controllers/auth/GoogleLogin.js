@@ -2,6 +2,7 @@ import axios from "axios";
 import google2Auth from "../../utils/Auth.js";
 import jwt from "jsonwebtoken";
 import WorkspaceUser from "../../model/User.js";
+import bcrypt from "bcryptjs";
 const GoogleLogin = async (req, res) => {
   try {
     const code = req.query.code;
@@ -31,16 +32,17 @@ const GoogleLogin = async (req, res) => {
       { expiresIn: "1h" }
     );
 
+    const findUser = await WorkspaceUser.findOne({ email });
+    const refreshToken = crypto.randomBytes(64).toString("hex");
+    const refreshTokenHash = bcrypt.hashSync(refreshToken, 10);
+
     const refresh_token = jwt.sign(
       {
-        access_token,
+        token: refreshTokenHash,
       },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: "7d" }
     );
-
-    const findUser = await WorkspaceUser.findOne({ email });
-
     if (!findUser) {
       await WorkspaceUser.create({
         name,
@@ -49,14 +51,20 @@ const GoogleLogin = async (req, res) => {
         refreshToken: refresh_token,
       });
     }
-    if(findUser){
-        await WorkspaceUser.findByIdAndUpdate(findUser.id, {
-            refreshToken: refresh_token
-        })
+    if (findUser) {
+      await WorkspaceUser.findByIdAndUpdate(findUser.id, {
+        refreshToken: refresh_token,
+      });
     }
 
-    res.cookie("workspace_access_token", access_token, {
+    res.cookie("workspace_refresh_token", refreshToken, {
       httpOnly: true,
+      maxAge: 60 * 60 * 1000 * 48,
+      sameSite: "Lax",
+    });
+
+    res.cookie("workspace_access_token", access_token, {
+      httpOnly: false,
       maxAge: 60 * 60 * 1000 * 2,
       sameSite: "Lax",
     });
