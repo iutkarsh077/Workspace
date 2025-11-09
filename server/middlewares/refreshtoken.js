@@ -1,6 +1,6 @@
 import "dotenv/config";
 import jwt from "jsonwebtoken";
-import WorkspaceUser from "../model/User";
+import WorkspaceUser from "../model/User.js";
 async function Auth(req, res, next) {
   try {
     const access_token = req.cookies.workspace_access_token;
