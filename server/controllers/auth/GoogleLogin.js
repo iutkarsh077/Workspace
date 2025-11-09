@@ -3,6 +3,7 @@ import google2Auth from "../../utils/Auth.js";
 import jwt from "jsonwebtoken";
 import WorkspaceUser from "../../model/User.js";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 const GoogleLogin = async (req, res) => {
   try {
     const code = req.query.code;
@@ -22,42 +23,43 @@ const GoogleLogin = async (req, res) => {
       picture,
     };
 
-    const access_token = jwt.sign(
-      {
+
+
+    let findUser = await WorkspaceUser.findOne({ email });
+   
+    if (!findUser) {
+      findUser = await WorkspaceUser.create({
         name,
         email,
-        picture,
+        picture
+      });
+    }
+
+    const access_token = jwt.sign(
+      {
+       id: findUser._id
       },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "2h" }
     );
 
-    const findUser = await WorkspaceUser.findOne({ email });
-    const refreshToken = crypto.randomBytes(64).toString("hex");
-    const refreshTokenHash = bcrypt.hashSync(refreshToken, 10);
+    const randomHash = crypto.randomBytes(64).toString("hex");
 
     const refresh_token = jwt.sign(
       {
-        token: refreshTokenHash,
+        token: randomHash,
+        id: findUser._id,
       },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: "7d" }
     );
-    if (!findUser) {
-      await WorkspaceUser.create({
-        name,
-        email,
-        picture,
-        refreshToken: refresh_token,
-      });
-    }
-    if (findUser) {
-      await WorkspaceUser.findByIdAndUpdate(findUser.id, {
-        refreshToken: refresh_token,
-      });
-    }
 
-    res.cookie("workspace_refresh_token", refreshToken, {
+
+    await WorkspaceUser.findByIdAndUpdate(findUser._id, {
+      refreshToken: refresh_token
+    })
+
+    res.cookie("workspace_refresh_token", refresh_token, {
       httpOnly: true,
       maxAge: 60 * 60 * 1000 * 48,
       sameSite: "Lax",
