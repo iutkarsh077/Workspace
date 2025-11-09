@@ -1,14 +1,17 @@
 import { FcGoogle } from "react-icons/fc";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 const Login = () => {
+  const navigate = useNavigate();
   const handleLogin = async (authResult: any) =>{
     try {
       if(authResult["code"]){
         const code = authResult["code"];
-        const result = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/auth/login/google-login?code=${code}`, {
+        await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/auth/login/google-login?code=${code}`, {
           withCredentials: true
         })
+        navigate("/");
         // console.log("The result is: ", result);
       }
     } catch (error) {

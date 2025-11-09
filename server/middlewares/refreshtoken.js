@@ -17,9 +17,10 @@ async function Auth(req, res, next) {
     }
     const refresh_token = req.cookies.workspace_refresh_token;
     if (!refresh_token) {
+        console.log(req.cookies.workspace_refresh_token, req.cookies.workspace_access_token)
       return res
         .status(401)
-        .json({ message: "Unauthorized access denied", statu: false });
+        .json({ message: "Unauthorized access denied", status: false });
     }
 
     let decodedRefresh;
