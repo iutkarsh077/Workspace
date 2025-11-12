@@ -51,7 +51,7 @@ const GoogleLogin = async (req, res) => {
         id: findUser._id,
       },
       process.env.JWT_REFRESH_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "2d" }
     );
 
 

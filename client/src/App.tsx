@@ -4,7 +4,7 @@ import Navbar from "./components/custom/Navbar"
 const App = () => {
   return (
    <>
-   <Navbar/>
+   {/* <Navbar/> */}
    <Outlet/>
    </>
   )

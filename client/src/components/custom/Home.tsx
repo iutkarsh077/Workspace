@@ -1,10 +1,13 @@
 import type { IUser } from "@/types/index";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Editor from "@monaco-editor/react"
 
 
 const Home = () => {
   const [userInfo, setUserInfo] = useState<IUser | null>(null);
+  const editorRef = useRef(null);
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -19,7 +22,19 @@ const Home = () => {
     };
     fetchUser();
   }, []);
-  return <div>This is a Home {userInfo?.email}</div>;
+
+   const handleEditorDidMount = (editor) =>{
+    editorRef.current = editor
+  }
+
+  const currentValue = () =>{
+    console.log(editorRef.current.getValue())
+  }
+  return (
+    <div className="">
+      <Editor height="90vh" defaultLanguage="javascript" defaultValue="// some comment" onMount={handleEditorDidMount}/>
+  </div>
+  );
 };
 
 export default Home;
